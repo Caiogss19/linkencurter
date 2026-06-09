@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Linkencurter — Encurtador de links</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <main class="container">
+      <header>
+        <h1>🔗 Linkencurter</h1>
+        <p class="subtitle">Encurte links para mandar no WhatsApp, redes sociais ou onde quiser.</p>
+      </header>
+
+      <section class="card">
+        <form id="shorten-form">
+          <label for="url">Link original</label>
+          <input
+            type="url"
+            id="url"
+            name="url"
+            placeholder="https://exemplo.com/uma/url/bem/longa"
+            required
+            autocomplete="off"
+          />
+
+          <label for="slug">Slug personalizado <span class="hint">(opcional)</span></label>
+          <input
+            type="text"
+            id="slug"
+            name="slug"
+            placeholder="meu-link"
+            pattern="[A-Za-z0-9_\-]{3,32}"
+            autocomplete="off"
+          />
+
+          <button type="submit" id="submit-btn">Encurtar</button>
+        </form>
+
+        <div id="result" class="result hidden">
+          <p class="result-label">Seu link curtinho:</p>
+          <div class="result-row">
+            <a id="short-link" href="#" target="_blank" rel="noopener"></a>
+            <button id="copy-btn" type="button">Copiar</button>
+          </div>
+        </div>
+
+        <p id="error" class="error hidden"></p>
+      </section>
+
+      <section class="card">
+        <div class="links-header">
+          <h2>Links recentes</h2>
+          <button id="refresh-btn" type="button" class="ghost">Atualizar</button>
+        </div>
+        <ul id="links-list" class="links-list"></ul>
+        <p id="empty-state" class="empty hidden">Nenhum link ainda. Crie o primeiro acima!</p>
+      </section>
+
+      <footer>
+        <p>Feito para usar no zap. Aperta e compartilha.</p>
+      </footer>
+    </main>
+
+    <script src="/app.js"></script>
+  </body>
+</html>
