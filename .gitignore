@@ -1,5 +1,10 @@
 node_modules/
-data/
-*.log
+.next/
+out/
 .env
+.env.local
+.env*.local
+*.log
 .DS_Store
+.vercel
+next-env.d.ts

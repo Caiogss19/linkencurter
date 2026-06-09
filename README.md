@@ -1,62 +1,88 @@
-# 🔗 Linkencurter
+# Spark Maxx · Link Shortener
 
-Encurtador de links simples e auto-hospedado, feito para usar no WhatsApp e redes sociais.
+Encurtador de links interno da Spark Maxx. Feito pra mandar URLs curtas no WhatsApp e redes sociais sem depender de bit.ly e cia.
 
-## Recursos
+Stack: **Next.js 14 (App Router) + Supabase (Postgres) + Vercel**.
 
-- Encurtar qualquer URL `http://` ou `https://`
-- Slugs personalizados (ex: `meusite.com/promo`)
-- Contagem de cliques
-- Lista dos links recentes
-- Interface limpa, responsiva e em português
-- Armazenamento local com SQLite (zero configuração)
+## Como funciona
 
-## Como rodar localmente
+- `/login` — senha única (env `ADMIN_PASSWORD`)
+- `/` — dashboard pra criar e listar links (auth obrigatória)
+- `/:slug` — redirect público com contagem de cliques
+- Storage: tabela `public.short_links` no projeto Supabase `spark-maxx-rd-dashboard`
 
-Precisa de Node.js 18+.
+## Setup no Vercel
+
+1. **Importar o repo** no painel Vercel (time `caiogss1909-3571's projects`).
+2. **Configurar env vars** (Settings → Environment Variables):
+
+   | Variável                       | Valor                                                                                |
+   | ------------------------------ | ------------------------------------------------------------------------------------ |
+   | `NEXT_PUBLIC_SUPABASE_URL`     | `https://rximtawdguljuwiektgx.supabase.co`                                            |
+   | `SUPABASE_SERVICE_ROLE_KEY`    | Pegar no painel Supabase → Settings → API → `service_role` key                       |
+   | `ADMIN_PASSWORD`               | Senha pra entrar no dashboard (mín. 8 chars)                                          |
+   | `SESSION_SECRET`               | String aleatória de 32+ chars (use `openssl rand -hex 32`)                            |
+   | `NEXT_PUBLIC_BASE_URL`         | URL pública do app, ex: `https://spark-link.vercel.app` (opcional, detecta sozinho)   |
+
+3. **Deploy**. Vercel pega `next.config.mjs` e `vercel.json` (região `gru1` São Paulo) automaticamente.
+
+> ⚠️ A `service_role` key bypassa RLS — nunca colar no front. Só vai em var de servidor.
+
+## Rodar local
 
 ```bash
+cp .env.example .env.local
+# preencha .env.local com os valores acima
 npm install
-npm start
+npm run dev
 ```
 
-Abra `http://localhost:3000`.
+Abra `http://localhost:3000` → vai redirecionar pra `/login`.
 
-## Variáveis de ambiente
+## Banco de dados
 
-| Variável   | Padrão                  | Descrição                                              |
-| ---------- | ----------------------- | ------------------------------------------------------ |
-| `PORT`     | `3000`                  | Porta do servidor                                      |
-| `BASE_URL` | `http://localhost:PORT` | Domínio público (ex: `https://meu.link`)               |
-| `DATA_DIR` | `./data`                | Pasta onde o banco SQLite é salvo                      |
+A migration já foi aplicada no Supabase `spark-maxx-rd-dashboard`. Schema:
 
-## Deploy
+```sql
+CREATE TABLE public.short_links (
+  slug TEXT PRIMARY KEY,
+  url TEXT NOT NULL,
+  clicks BIGINT NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  created_by TEXT
+);
 
-Funciona em qualquer serviço que rode Node.js com armazenamento persistente:
-
-- **Railway / Render / Fly.io**: aponte o repo, defina `BASE_URL` e suba.
-- **VPS**: rode com `pm2` ou `systemd`.
-
-Como usa SQLite com WAL, recomenda-se um volume persistente para `DATA_DIR` em hospedagens.
-
-## API
-
-### `POST /api/shorten`
-
-```json
-{ "url": "https://exemplo.com", "slug": "opcional" }
+CREATE FUNCTION public.increment_short_link_clicks(p_slug TEXT) ...;
 ```
 
-Resposta:
+RLS habilitada sem policies — apenas o backend (service role) acessa.
 
-```json
-{ "slug": "abc123", "url": "https://exemplo.com", "shortUrl": "http://localhost:3000/abc123" }
+## Estrutura
+
+```
+app/
+  api/
+    shorten/route.ts    POST: cria link curto (auth)
+    links/route.ts      GET: lista 50 últimos (auth)
+    logout/route.ts     GET: limpa sessão
+  [slug]/page.tsx       redirect público + clicks++
+  login/page.tsx        formulário de senha
+  dashboard.tsx         UI cliente do painel
+  page.tsx              entrypoint (gate de auth)
+  not-found.tsx         404 customizado
+lib/
+  supabase.ts           cliente Supabase com service role
+  auth.ts               cookie de sessão HMAC
+  slug.ts               regex e geração nanoid
+middleware.ts           protege / e /dashboard
+vercel.json             região gru1
 ```
 
-### `GET /api/links`
+## Domínio próprio
 
-Lista os últimos 50 links criados.
+Quando tiver um domínio (ex: `lnk.sparkmaxx.com.br`):
 
-### `GET /:slug`
-
-Redireciona para a URL original e incrementa o contador de cliques.
+1. Vercel → Project → Settings → Domains → adicionar
+2. Apontar CNAME no DNS pro Vercel
+3. Definir env `NEXT_PUBLIC_BASE_URL=https://lnk.sparkmaxx.com.br`
+4. Redeploy
