@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { getSupabase } from '@/lib/supabase';
 import { generateSlug, isReservedSlug, isValidUrl, SLUG_REGEX } from '@/lib/slug';
 import { isAuthenticated } from '@/lib/auth';
 
@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
     if (isReservedSlug(slug)) {
       return NextResponse.json({ error: 'Esse slug é reservado' }, { status: 400 });
     }
-    const { data: existing } = await supabase
+    const { data: existing } = await getSupabase()
       .from('short_links')
       .select('slug')
       .eq('slug', slug)
@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
     let attempts = 0;
     while (attempts < 5) {
       const candidate = generateSlug();
-      const { data: existing } = await supabase
+      const { data: existing } = await getSupabase()
         .from('short_links')
         .select('slug')
         .eq('slug', candidate)
@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  const { error } = await supabase
+  const { error } = await getSupabase()
     .from('short_links')
     .insert({ slug, url, created_by: null });
 

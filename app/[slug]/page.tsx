@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { notFound } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
+import { getSupabase } from '@/lib/supabase';
 import { SLUG_REGEX } from '@/lib/slug';
 
 export const dynamic = 'force-dynamic';
@@ -14,7 +14,8 @@ export default async function SlugRedirect({
   const { slug } = params;
   if (!SLUG_REGEX.test(slug)) notFound();
 
-  const { data, error } = await supabase
+  const sb = getSupabase();
+  const { data, error } = await sb
     .from('short_links')
     .select('url')
     .eq('slug', slug)
@@ -22,7 +23,7 @@ export default async function SlugRedirect({
 
   if (error || !data) notFound();
 
-  await supabase.rpc('increment_short_link_clicks', { p_slug: slug });
+  await sb.rpc('increment_short_link_clicks', { p_slug: slug });
 
   redirect(data.url);
 }

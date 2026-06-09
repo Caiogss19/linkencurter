@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { getSupabase } from '@/lib/supabase';
 import { isAuthenticated } from '@/lib/auth';
 
 export const runtime = 'nodejs';
@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
   }
 
-  const { data, error } = await supabase
+  const { data, error } = await getSupabase()
     .from('short_links')
     .select('slug, url, clicks, created_at')
     .order('created_at', { ascending: false })
