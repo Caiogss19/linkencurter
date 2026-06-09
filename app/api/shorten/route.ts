@@ -1,7 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { getSupabase } from '@/lib/supabase';
 import { generateSlug, isReservedSlug, isValidUrl, SLUG_REGEX } from '@/lib/slug';
-import { isAuthenticated } from '@/lib/auth';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -15,10 +14,6 @@ function buildBaseUrl(req: NextRequest): string {
 }
 
 export async function POST(req: NextRequest) {
-  if (!isAuthenticated()) {
-    return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
-  }
-
   let body: { url?: unknown; slug?: unknown };
   try {
     body = await req.json();

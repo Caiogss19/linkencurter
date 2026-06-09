@@ -1,6 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { getSupabase } from '@/lib/supabase';
-import { isAuthenticated } from '@/lib/auth';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -14,10 +13,6 @@ function buildBaseUrl(req: NextRequest): string {
 }
 
 export async function GET(req: NextRequest) {
-  if (!isAuthenticated()) {
-    return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
-  }
-
   const { data, error } = await getSupabase()
     .from('short_links')
     .select('slug, url, clicks, created_at')

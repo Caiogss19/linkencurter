@@ -6,8 +6,7 @@ Stack: **Next.js 14 (App Router) + Supabase (Postgres) + Vercel**.
 
 ## Como funciona
 
-- `/login` — senha única (env `ADMIN_PASSWORD`)
-- `/` — dashboard pra criar e listar links (auth obrigatória)
+- `/` — dashboard pra criar e listar links (aberto, sem login)
 - `/:slug` — redirect público com contagem de cliques
 - Storage: tabela `public.short_links` no projeto Supabase `spark-maxx-rd-dashboard`
 
@@ -20,8 +19,6 @@ Stack: **Next.js 14 (App Router) + Supabase (Postgres) + Vercel**.
    | ------------------------------ | ------------------------------------------------------------------------------------ |
    | `NEXT_PUBLIC_SUPABASE_URL`     | `https://rximtawdguljuwiektgx.supabase.co`                                            |
    | `SUPABASE_SERVICE_ROLE_KEY`    | Pegar no painel Supabase → Settings → API → `service_role` key                       |
-   | `ADMIN_PASSWORD`               | Senha pra entrar no dashboard (mín. 8 chars)                                          |
-   | `SESSION_SECRET`               | String aleatória de 32+ chars (use `openssl rand -hex 32`)                            |
    | `NEXT_PUBLIC_BASE_URL`         | URL pública do app, ex: `https://spark-link.vercel.app` (opcional, detecta sozinho)   |
 
 3. **Deploy**. Vercel pega `next.config.mjs` e `vercel.json` (região `gru1` São Paulo) automaticamente.
@@ -37,7 +34,7 @@ npm install
 npm run dev
 ```
 
-Abra `http://localhost:3000` → vai redirecionar pra `/login`.
+Abra `http://localhost:3000` → cai direto no dashboard.
 
 ## Banco de dados
 
@@ -62,19 +59,15 @@ RLS habilitada sem policies — apenas o backend (service role) acessa.
 ```
 app/
   api/
-    shorten/route.ts    POST: cria link curto (auth)
-    links/route.ts      GET: lista 50 últimos (auth)
-    logout/route.ts     GET: limpa sessão
+    shorten/route.ts    POST: cria link curto
+    links/route.ts      GET: lista 50 últimos
   [slug]/page.tsx       redirect público + clicks++
-  login/page.tsx        formulário de senha
   dashboard.tsx         UI cliente do painel
-  page.tsx              entrypoint (gate de auth)
+  page.tsx              entrypoint
   not-found.tsx         404 customizado
 lib/
   supabase.ts           cliente Supabase com service role
-  auth.ts               cookie de sessão HMAC
   slug.ts               regex e geração nanoid
-middleware.ts           protege / e /dashboard
 vercel.json             região gru1
 ```
 

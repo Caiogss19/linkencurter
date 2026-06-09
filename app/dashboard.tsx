@@ -91,8 +91,6 @@ export default function Dashboard() {
           <strong>Spark Maxx</strong>
           <span>Link Shortener</span>
         </div>
-        <div className="brand-spacer" />
-        <a className="btn-link" href="/api/logout">Sair</a>
       </div>
 
       <h1>Encurte um link</h1>
